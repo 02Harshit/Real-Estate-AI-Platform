@@ -1,55 +1,56 @@
-import os
-import bcrypt
-from datetime import datetime, timedelta
-from typing import Optional
-from jose import JWTError, jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend.db.database import get_db
-from backend.db.models_db import User
+from fastapi.security import OAuth2PasswordRequestForm
+from datetime import timedelta
+from pydantic import BaseModel
 
-# Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "a_very_secret_key_change_in_production")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 week
+from db.database import get_db
+from db.models_db import User
+from api.auth_utils import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES
+)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+router = APIRouter(tags=["Authentication"])
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # bcrypt requires bytes, so we encode the strings to utf-8
-    password_bytes = plain_password.encode('utf-8')
-    hashed_password_bytes = hashed_password.encode('utf-8')
-    return bcrypt.checkpw(password_bytes, hashed_password_bytes)
 
-def get_password_hash(password: str) -> str:
-    # Hash the password and return it as a string to store in the database
-    pwd_bytes = password.encode('utf-8')
-    salt = bcrypt.gensalt()
-    hashed_password_bytes = bcrypt.hashpw(pwd_bytes, salt)
-    return hashed_password_bytes.decode('utf-8')
+class UserCreate(BaseModel):
+    name: str
+    phone_number: str
+    password: str
+    is_admin: bool = False
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=15))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        phone_number: str = payload.get("sub")
-        if phone_number is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
+@router.post("/register")
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    # NEW: Strict 10-digit validation with admin bypass
+    if "admin" not in user.phone_number.lower():
+        if not user.phone_number.isdigit() or len(user.phone_number) != 10:
+            raise HTTPException(status_code=400, detail="Phone number must be exactly 10 digits")
+
+    db_user = db.query(User).filter(User.phone_number == user.phone_number).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Phone number already registered")
     
-    user = db.query(User).filter(User.phone_number == phone_number).first()
-    if user is None:
-        raise credentials_exception
-    return user
+    hashed_pwd = get_password_hash(user.password)
+    # NEW: Save the user's name
+    new_user = User(name=user.name, phone_number=user.phone_number, hashed_password=hashed_pwd, is_admin=user.is_admin)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "User registered successfully"}
+
+
+@router.post("/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.phone_number == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect phone number or password")
+    
+    access_token = create_access_token(
+        data={"sub": user.phone_number, "is_admin": user.is_admin},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"access_token": access_token, "token_type": "bearer", "is_admin": user.is_admin}

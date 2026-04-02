@@ -1,4 +1,4 @@
-﻿from backend.ai.crew_pipeline import run_triage
+﻿from ai.crew_pipeline import run_triage
 
 
 def execute_triage(message: str) -> dict:

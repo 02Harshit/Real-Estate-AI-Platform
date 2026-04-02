@@ -1,5 +1,5 @@
 from crewai import Task
-from backend.db.models import TriageResult
+from db.models import TriageResult
 
 class RealEstateTasks:
     def classification_task(self, agent, text):
