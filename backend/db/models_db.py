@@ -32,14 +32,20 @@ class Property(Base):
 
     title = Column(String, nullable=False)
     location = Column(String, nullable=False)
+    city = Column(String)
 
     price = Column(Float)
-    property_type = Column(String)
+    listing_type = Column(String)  # Sale / Rent
+    property_type = Column(String)  # Apartment / Villa / Plot
 
     bedrooms = Column(Integer)
+    bathrooms = Column(Integer)
+
     area = Column(String)
 
     amenities = Column(Text)
     description = Column(Text)
 
     image_url = Column(String)
+
+    status = Column(String, default="Available")  # Available / Sold / Rented

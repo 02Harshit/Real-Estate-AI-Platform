@@ -28,11 +28,13 @@ class RealEstateTasks:
             agent=agent
         )
 
-    def response_task(self, agent, text):
+    def response_task(self, agent, text, property_context):
         return Task(
             description=(
                 "Create the final triage result.\n"
-                f"Inquiry: '{text}'\n"
+                f"Inquiry: '{text}'\n\n"
+                f"Relevant property knowledge from datbase:\n"
+                f"{property_context}\n\n"
                 "You will be given previous task outputs in the context.\n"
                 "Use classification output (urgency, intent) and extraction output (property_id, appointment_date).\n"
                 "Do not re-classify or re-extract. Focus on drafting a professional response.\n"

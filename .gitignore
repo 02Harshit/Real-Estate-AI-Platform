@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+vector_db/
 
 # Environment variables
 .env
@@ -32,3 +33,6 @@ frontend/dist/
 # Temporary files
 *.tmp
 *.temp
+
+#backend
+uploads/

@@ -4,7 +4,8 @@ import Login from "./components/Login";
 import Chat from "./components/Chat";
 import Admin from "./components/Admin";
 
-export const API_BASE = "https://real-estate-triage-agent.onrender.com";
+// export const API_BASE = "https://real-estate-triage-agent.onrender.com";
+export const API_BASE = "http://127.0.0.1:8000";
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token") || "");

@@ -4,7 +4,7 @@ from ai.agents import RealEstateAgents
 from ai.tasks import RealEstateTasks
 
 
-def run_triage(message: str) -> dict:
+def run_triage(message: str, property_context: str) -> dict:
     agents = RealEstateAgents()
     tasks = RealEstateTasks()
 
@@ -14,7 +14,7 @@ def run_triage(message: str) -> dict:
 
     classification = tasks.classification_task(triage, message)
     extraction = tasks.extraction_task(ner, message)
-    response = tasks.response_task(writer, message)
+    response = tasks.response_task(writer, message, property_context)
 
     response.context = [classification, extraction]
 
