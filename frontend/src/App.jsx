@@ -1,72 +1,44 @@
-import { useState, useEffect } from "react";
-import Header from "./components/Header";
-import Login from "./components/Login";
-import Chat from "./components/Chat";
-import Admin from "./components/Admin";
-
-// export const API_BASE = "https://real-estate-triage-agent.onrender.com";
-export const API_BASE = "http://127.0.0.1:8000";
+import { Navigate, Route, Routes } from "react-router-dom";
+import AppLayout from "./components/layout/AppLayout";
+import AdminRoute from "./routes/AdminRoute";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import AdminPage from "./pages/AdminPage";
+import AssistantPage from "./pages/AssistantPage";
+import AuthPage from "./pages/AuthPage";
+import DashboardPage from "./pages/DashboardPage";
+import LandingPage from "./pages/LandingPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import PropertiesPage from "./pages/PropertiesPage";
+import PropertyDetailPage from "./pages/PropertyDetailPage";
 
 export default function App() {
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
-  const [isAdmin, setIsAdmin] = useState(localStorage.getItem("isAdmin") === "true");
-  const [view, setView] = useState(token ? "chat" : "login"); // 'login', 'chat', 'admin'
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', !isDarkMode ? 'light' : 'dark');
-  }, [isDarkMode]);
-
-  const handleLogout = () => {
-    setToken("");
-    setIsAdmin(false);
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAdmin");
-    setView("login");
-  };
-
-  // Adjust container styles dynamically based on whether it's the login view
-  const isLogin = view === "login";
-  const pageStyle = isLogin ? { display: 'flex', justifyContent: 'center', alignItems: 'center' } : {};
-  const shellStyle = isLogin ? { height: 'auto', width: '100%', maxWidth: '850px' } : {};
-
   return (
-    <div className={`page ${isDarkMode ? 'dark-mode' : 'light-mode'}`} style={pageStyle}>
-      <div className="chat-shell" style={shellStyle}>
-        
-        <Header 
-          view={view} 
-          setView={setView} 
-          isAdmin={isAdmin} 
-          isDarkMode={isDarkMode} 
-          setIsDarkMode={setIsDarkMode} 
-          handleLogout={handleLogout} 
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={<LandingPage />} />
+        <Route path="properties" element={<PropertiesPage />} />
+        <Route path="properties/:propertyId" element={<PropertyDetailPage />} />
+        <Route path="assistant" element={<AssistantPage />} />
+        <Route path="auth" element={<AuthPage />} />
+        <Route
+          path="dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
         />
-
-        {view === "login" && (
-          <Login 
-            setToken={setToken} 
-            setIsAdmin={setIsAdmin} 
-            setView={setView} 
-            isDarkMode={isDarkMode} 
-          />
-        )}
-
-        {view === "chat" && (
-          <Chat 
-            token={token} 
-            handleLogout={handleLogout} 
-          />
-        )}
-
-        {view === "admin" && (
-          <Admin 
-            token={token} 
-            isDarkMode={isDarkMode} 
-          />
-        )}
-
-      </div>
-    </div>
+        <Route
+          path="admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
+          }
+        />
+        <Route path="home" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   );
 }
