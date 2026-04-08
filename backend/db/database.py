@@ -5,8 +5,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Get the NeonDB URL from .env (e.g., postgresql://user:pass@ep-name.region.aws.neon.tech/dbname?sslmode=require)
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+# Get the NeonDB URL from .env (e.g., postgresql://user:pass@host/dbname?sslmode=require)
+# Docker's --env-file keeps surrounding quotes, so trim them if present.
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "").strip().strip("\"'")
+
+if not SQLALCHEMY_DATABASE_URL:
+    raise ValueError("DATABASE_URL is missing or empty.")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -1,12 +1,16 @@
-backend/venv
-backend/__pycache__
+backend/venv/
+backend/.venv/
+backend/__pycache__/
 backend/*.pyc
-backend/.pytest_cache
+backend/.pytest_cache/
+backend/uploads/
+backend/vector_db/
+backend/.env
 
-frontend/node_modules
-frontend/dist
+frontend/node_modules/
+frontend/dist/
 
-.git
+.git/
 .gitignore
 
-vector_db
+vector_db/
