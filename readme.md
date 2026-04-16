@@ -127,10 +127,6 @@ python data/seed_admin.py
 python data/seed_properties.py
 ```
 
-The default seeded admin is:
-
-- phone number: `admin123`
-- password: `1234`
 
 ### 3. Start the backend
 

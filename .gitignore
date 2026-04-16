@@ -8,6 +8,7 @@ vector_db/
 
 # Environment variables
 .env
+.env.production
 
 # Logs
 *.log
@@ -37,3 +38,8 @@ frontend/dist/
 #backend
 uploads/
 backend/data
+
+#terraform files
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
