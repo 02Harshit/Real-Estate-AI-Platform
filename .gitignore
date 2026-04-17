@@ -36,7 +36,6 @@ frontend/dist/
 *.temp
 
 #backend
-uploads/
 backend/data
 
 #terraform files
