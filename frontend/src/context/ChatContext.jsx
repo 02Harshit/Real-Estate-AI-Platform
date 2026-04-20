@@ -17,6 +17,13 @@ const INITIAL_MESSAGE = {
 
 const delay = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
+function generateId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
 function extractError(error) {
   if (error?.response?.data?.detail) {
     return typeof error.response.data.detail === "string"
@@ -104,7 +111,7 @@ export function ChatProvider({ children }) {
     setIsThinking(true);
 
     appendMessage({
-      id: crypto.randomUUID(),
+      id: generateId(),
       role: "user",
       content: message,
     });
@@ -113,7 +120,7 @@ export function ChatProvider({ children }) {
       const result = await submitInquiry(message);
       const reply = result?.draft_response?.trim() || "I found a match, but the response came back empty.";
 
-      await streamAssistantReply(crypto.randomUUID(), reply, {
+      await streamAssistantReply(generateId(), reply, {
         urgency: result.urgency,
         intent: result.intent,
         propertyId: result.property_id,
@@ -122,7 +129,7 @@ export function ChatProvider({ children }) {
 
       return { ok: true, data: result };
     } catch (error) {
-      await streamAssistantReply(crypto.randomUUID(), extractError(error), {
+      await streamAssistantReply(generateId(), extractError(error), {
         intent: "Support",
         urgency: "System",
       });
