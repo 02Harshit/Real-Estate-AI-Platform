@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1.7
+FROM python:3.11-slim
+
+# 1. Create a non-root user (Required by Hugging Face)
+RUN useradd -m -u 1000 user
+USER user
+
+# 2. Set environment variables, including the new user's PATH
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# 3. Set the working directory to the user's home app directory
+WORKDIR $HOME/app
+
+# 4. Copy requirements WITH ownership given to the non-root user
+COPY --chown=user backend/requirements.txt ./requirements.txt
+
+# 5. Install dependencies (Cache mounts adjusted for the user directory)
+RUN --mount=type=cache,uid=1000,gid=1000,target=/home/user/.cache/pip \
+    pip install --upgrade pip setuptools wheel
+
+RUN --mount=type=cache,uid=1000,gid=1000,target=/home/user/.cache/pip \
+    pip install --prefer-binary --no-compile -r requirements.txt
+
+# 6. Copy the rest of the backend code WITH ownership
+COPY --chown=user backend/ ./
+
+# 7. Expose and run on Port 7860 (Required by Hugging Face)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]

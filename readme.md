@@ -1,3 +1,14 @@
+---
+title: Real Estate AI Platform
+emoji: 🏢
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+docker_file: docker/backend.Dockerfile.hf
+---
+
+# Your standard markdown text can go below this line...
 # Real Estate AI Platform
 
 A full-stack real estate platform with:
